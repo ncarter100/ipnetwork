@@ -85,6 +85,45 @@ impl IpNetwork {
         }
     }
 
+    /// Checks if a given `IpAddr` is in this `IpNetwork`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+    /// use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+    ///
+    /// let v4_net: Ipv4Network = "127.0.0.0/24".parse().unwrap();
+    /// let net = IpNetwork::V4(v4_net);
+    /// assert!(net.contains(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 70))));
+    /// assert!(!net.contains(IpAddr::V4(Ipv4Addr::new(127, 0, 1, 70))));
+    /// assert!(!net.contains(IpAddr::V6(Ipv6Addr::new(0xff01, 0, 0, 0, 0, 0, 0, 0x1))));
+    /// assert!(!net.contains(IpAddr::V6(Ipv6Addr::new(0xffff, 0, 0, 0, 0, 0, 0, 0x1))));
+    ///
+    /// let v6_net: Ipv6Network = "ff01::0/32".parse().unwrap();
+    /// let net = IpNetwork::V6(v6_net);
+    /// assert!(net.contains(IpAddr::V6(Ipv6Addr::new(0xff01, 0, 0, 0, 0, 0, 0, 0x1))));
+    /// assert!(!net.contains(IpAddr::V6(Ipv6Addr::new(0xffff, 0, 0, 0, 0, 0, 0, 0x1))));
+    /// assert!(!net.contains(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 70))));
+    /// assert!(!net.contains(IpAddr::V4(Ipv4Addr::new(127, 0, 1, 70))));
+    /// ```
+    pub fn contains(&self, ip: IpAddr) -> bool {
+        match *self {
+            IpNetwork::V4(ref a) => {
+                match ip {
+                    IpAddr::V4(ipv4) => return a.contains(ipv4),
+                    IpAddr::V6(_) => return false,
+                }
+            }
+            IpNetwork::V6(ref a) => {
+                match ip {
+                    IpAddr::V4(_) => return false,
+                    IpAddr::V6(ipv6) => return a.contains(ipv6),
+                }
+            }
+        }
+    }
+
     /// Returns true if the IP in this `IpNetwork` is a valid IPv4 address,
     /// false if it's a valid IPv6 address.
     ///
